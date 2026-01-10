@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User Profiles
+    // Authenticated users can read all user profiles (for leaderboard/battles)
+    // But only write to their own
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Challenges (Battles)
+    match /challenges/{challengeId} {
+      // Anyone logged in can create a challenge
+      allow create: if request.auth != null;
+      // Users can read/update if they are the challenger or the target
+      allow read, update: if request.auth != null && (
+         resource.data.challengerId == request.auth.uid || 
+         (request.auth.token.email != null && resource.data.targetEmail == request.auth.token.email)
+      );
+    }
+
+    // Deny access to everything else by default for safety
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

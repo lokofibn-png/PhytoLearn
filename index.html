@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Pythonlingo v3.0</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+    <link rel="manifest" href="manifest.json" />
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pythonlingo">
+    
+    <style>
+      #startup-error { display: none; position: fixed; inset: 0; background: #111; color: #f55; z-index: 10000; padding: 20px; font-family: monospace; white-space: pre-wrap; overflow: auto; }
+      body { margin: 0; background-color: #111827; }
+
+      /* EASTER EGG: Rainbow God Mode */
+      body.rainbow-mode {
+          animation: rainbow 5s linear infinite;
+      }
+      @keyframes rainbow {
+          0% { filter: hue-rotate(0deg); }
+          100% { filter: hue-rotate(360deg); }
+      }
+
+      /* EASTER EGG: Antigravity */
+      .animate-float-crazy {
+          animation: floatCrazy 10s ease-in-out infinite;
+          transform-origin: center;
+      }
+      @keyframes floatCrazy {
+          0% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-20px) rotate(2deg); }
+          50% { transform: translateY(10px) rotate(-2deg) scale(0.98); }
+          75% { transform: translateY(-15px) rotate(1deg); }
+          100% { transform: translateY(0) rotate(0deg); }
+      }
+
+      /* Floating Animation for Dashboard Scripts */
+      .animate-float {
+          animation: float 6s ease-in-out infinite;
+      }
+      @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+      }
+
+      /* Generic UI Animations */
+      .animate-fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+      }
+      @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+      }
+
+      .animate-slide-up {
+          animation: slideUp 0.5s ease-out forwards;
+      }
+      @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+      }
+      
+      .animate-bounce-slow {
+          animation: bounce 3s infinite;
+      }
+      
+      /* Card Flip Animation */
+      .perspective-1000 { perspective: 1000px; }
+      .transform-style-3d { transform-style: preserve-3d; }
+      .backface-hidden { backface-visibility: hidden; }
+      .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+    <script>
+      // Capture PWA Install Prompt
+      window.deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        window.deferredPrompt = e;
+      });
+
+      // Helper to check if error is benign
+      function isBenignError(msg) {
+        return msg && (
+          msg.includes('releases.json') || 
+          msg.includes('Blocked a frame with origin') ||
+          msg.includes('The user aborted a request')
+        );
+      }
+
+      window.onerror = function(msg, src, line, col, error) {
+        if (isBenignError(msg)) return; // Ignore known safe errors
+        
+        var el = document.getElementById('startup-error');
+        if (el) {
+          el.style.display = 'block';
+          el.innerText = '🚨 FATAL STARTUP ERROR:\n' + msg + '\n\nSource: ' + src + ':' + line + '\n' + (error && error.stack ? error.stack : '');
+        }
+      };
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gray: { 850: '#1f2937', 900: '#111827' }, gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' } } } } }
+    </script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "@google/genai": "https://esm.sh/@google/genai@1.34.0",
+    "lucide-react": "https://esm.sh/lucide-react@0.344.0",
+    "firebase/": "https://esm.sh/firebase@10.12.0/",
+    "vite": "https://esm.sh/vite@5.2.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@4.2.1",
+    "@capacitor/core": "https://esm.sh/@capacitor/core@^8.0.0",
+    "@capacitor/network": "https://esm.sh/@capacitor/network@^8.0.0",
+    "@capacitor-firebase/authentication": "https://esm.sh/@capacitor-firebase/authentication@^8.0.1",
+    "@codetrix-studio/capacitor-google-auth": "https://esm.sh/@codetrix-studio/capacitor-google-auth@^3.4.0-rc.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="startup-error"></div>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

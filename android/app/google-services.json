@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "755959686276",
+    "firebase_url": "https://pytholingo-default-rtdb.firebaseio.com",
+    "project_id": "pytholingo",
+    "storage_bucket": "pytholingo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755959686276:android:36b42162cc2cb6a3470ed1",
+        "android_client_info": {
+          "package_name": "com.LearnPython.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755959686276-iucus752hne9memsmhsaq1o5njfg847b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwWDF0GdZordj_7bJubswdk3SJ9kLu0ok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755959686276-23c8mbc2rrjo7bb25k4side53i7g28c0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755959686276-0c5qv798451cpv83mur0bo4e3bp81l7k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "LearnPython.com"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

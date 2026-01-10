@@ -1,0 +1,20 @@
+{
+  "appId": "LearnPython.app",
+  "appName": "Pythonlingo",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Keyboard": {
+      "resize": "body",
+      "style": "dark",
+      "resizeOnFullScreen": true
+    },
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "755959686276-iucus752hne9memsmhsaq1o5njfg847b.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
+  }
+}
