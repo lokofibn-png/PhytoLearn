@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Exercise, ExerciseType, AppSettings, MascotMood } from '../types';
 import Mascot from './Mascot';
 import CodeEditor from './CodeEditor';
-import { validateCodeWithAI, getAiHint } from '../services/geminiService';
-import { Check, HelpCircle, X, ChevronRight, RefreshCw, Zap, Heart, FileText } from 'lucide-react';
+import { validateCodeWithAI, getAiHint, chatWithPyssss } from '../services/geminiService';
+import { Check, HelpCircle, X, ChevronRight, RefreshCw, Zap, Heart, Loader2, BookOpen, Lightbulb } from 'lucide-react';
 import { soundService } from '../services/soundService';
 
 interface LessonViewProps {
@@ -37,8 +37,14 @@ const LessonView: React.FC<LessonViewProps> = ({
   const [userCode, setUserCode] = useState('');
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string } | null>(null);
   const [hint, setHint] = useState<string | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [isFetchingHint, setIsFetchingHint] = useState(false);
   const [quizXp, setQuizXp] = useState(0);
+  
+  // New State for "Understandability" features
+  const [showReference, setShowReference] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isExplaining, setIsExplaining] = useState(false);
   
   // AI Prompt Interaction State
   const [showAiPrompt, setShowAiPrompt] = useState(false);
@@ -52,7 +58,7 @@ const LessonView: React.FC<LessonViewProps> = ({
     if (isTestMode && phase === 'READING') {
         setPhase('QUIZ');
     }
-  }, [isTestMode]);
+  }, [isTestMode, phase]);
 
   // Handle AI Thinking Delay on new exercise
   useEffect(() => {
@@ -76,6 +82,8 @@ const LessonView: React.FC<LessonViewProps> = ({
        }
        setFeedback(null);
        setHint(null);
+       setExplanation(null);
+       setShowReference(false);
     }
   }, [phase, currentExerciseIdx, exercises]);
 
@@ -88,9 +96,10 @@ const LessonView: React.FC<LessonViewProps> = ({
   };
 
   const handleCheck = async () => {
-      if (isChecking) return;
-      setIsChecking(true);
+      if (isValidating || isFetchingHint) return;
+      setIsValidating(true);
       setFeedback(null);
+      setExplanation(null);
 
       const currentEx = exercises[currentExerciseIdx];
       let isCorrect = false;
@@ -157,12 +166,10 @@ const LessonView: React.FC<LessonViewProps> = ({
               }
           } else {
               loseHeart();
-              // Standard mode failure logic if hearts reach 0 could go here too if we tracked it locally
-              // For now, failure is only 'Hard Fail' in Test Mode or if user quits
               setFeedback({ isCorrect: false, message: msg || "Oops, try again!" });
           }
       }
-      setIsChecking(false);
+      setIsValidating(false);
   };
 
   const handleNext = () => {
@@ -170,6 +177,7 @@ const LessonView: React.FC<LessonViewProps> = ({
           setCurrentExerciseIdx(prev => prev + 1);
           setFeedback(null);
           setHint(null);
+          setExplanation(null);
           setUserCode('');
       } else {
           // Lesson Complete
@@ -179,6 +187,8 @@ const LessonView: React.FC<LessonViewProps> = ({
 
   const handleHint = async () => {
       if (currentExerciseIdx >= exercises.length) return;
+      if (isFetchingHint || isValidating) return;
+
       const ex = exercises[currentExerciseIdx];
       
       if (ex.hint) {
@@ -187,10 +197,35 @@ const LessonView: React.FC<LessonViewProps> = ({
       }
       
       // Use AI for hint with language
-      setIsChecking(true);
-      const hintText = await getAiHint(userCode, ex.prompt, undefined, settings.language);
-      setHint(hintText);
-      setIsChecking(false);
+      setIsFetchingHint(true);
+      try {
+        const hintText = await getAiHint(userCode, ex.prompt, undefined, settings.language);
+        setHint(hintText);
+      } catch (e) {
+        setHint("Could not fetch hint. Try again.");
+      } finally {
+        setIsFetchingHint(false);
+      }
+  };
+
+  const handleExplainMistake = async () => {
+      if (isExplaining || !userCode) return;
+      setIsExplaining(true);
+      const currentEx = exercises[currentExerciseIdx];
+      const prompt = `I am a beginner learning Python. 
+      Task: ${currentEx.prompt}
+      My Incorrect Code: ${userCode}
+      
+      Explain simply why my code is wrong and give a conceptual tip to fix it. Do not just give the answer. Be encouraging.`;
+      
+      try {
+          const response = await chatWithPyssss(prompt, settings.language);
+          setExplanation(response);
+      } catch (e) {
+          setExplanation("I couldn't analyze that right now, but try checking your syntax and indentation!");
+      } finally {
+          setIsExplaining(false);
+      }
   };
 
   const progressPercent = phase === 'READING' ? 0 : ((currentExerciseIdx) / exercises.length) * 100;
@@ -218,6 +253,7 @@ const LessonView: React.FC<LessonViewProps> = ({
                         setCurrentExerciseIdx(0);
                         setQuizXp(0);
                         setFeedback(null);
+                        setExplanation(null);
                     }}
                     className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold"
                   >
@@ -229,22 +265,57 @@ const LessonView: React.FC<LessonViewProps> = ({
   }
 
   return (
-    <div className={`flex flex-col h-screen ${settings.darkMode ? 'dark bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`flex flex-col h-screen overflow-hidden ${settings.darkMode ? 'dark bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       
+      {/* Reference Modal Overlay */}
+      {showReference && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-end animate-fade-in">
+              <div className="w-full max-w-md bg-white dark:bg-gray-800 h-full p-6 overflow-y-auto shadow-2xl animate-slide-left border-l border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-gray-800 py-2 z-10 border-b border-gray-100 dark:border-gray-700">
+                      <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
+                          <BookOpen className="text-blue-500" /> Study Notes
+                      </h3>
+                      <button 
+                        onClick={() => setShowReference(false)}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                      >
+                          <X />
+                      </button>
+                  </div>
+                  <div className="space-y-4">
+                      {learningContent.map((paragraph, idx) => (
+                        <div key={idx} className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
+                             <div dangerouslySetInnerHTML={{ __html: renderBionicText(paragraph) }} />
+                        </div>
+                      ))}
+                  </div>
+              </div>
+          </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-sm z-10 transition-colors duration-500">
          <div className="flex items-center gap-4">
              <button onClick={() => onExit(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                  <X size={24} className="text-gray-500 dark:text-gray-400" />
              </button>
-             <div className="w-32 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+             <div className="w-24 sm:w-32 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                  <div className={`h-full transition-all duration-500 ${isTestMode ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${progressPercent}%` }}></div>
              </div>
          </div>
-         <div className="flex items-center gap-4 font-bold">
+         <div className="flex items-center gap-3 sm:gap-4 font-bold">
+             {phase === 'QUIZ' && !isTestMode && (
+                 <button 
+                    onClick={() => setShowReference(true)}
+                    className="p-2 text-blue-500 bg-blue-50 dark:bg-blue-900/30 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                    title="Open Study Notes"
+                 >
+                     <BookOpen size={20} />
+                 </button>
+             )}
              {isTestMode ? (
                  <div className="flex items-center gap-1 text-red-500 animate-pulse bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full border border-red-200 dark:border-red-800">
-                    <span className="text-xs uppercase mr-1">Test Mode</span>
+                    <span className="text-xs uppercase mr-1 hidden sm:inline">Test</span>
                     <Heart fill="currentColor" size={20} /> {testHearts}
                  </div>
              ) : (
@@ -307,6 +378,40 @@ const LessonView: React.FC<LessonViewProps> = ({
             </div>
         ) : (
             <div className="w-full max-w-3xl mb-6 animate-fade-in pb-20">
+                <style>{`
+                    @keyframes shake {
+                        0%, 100% { transform: translateX(0); }
+                        20%, 60% { transform: translateX(-5px); }
+                        40%, 80% { transform: translateX(5px); }
+                    }
+                    .animate-shake {
+                        animation: shake 0.4s ease-in-out;
+                    }
+                    @keyframes bounce-scale {
+                        0% { transform: scale(0.9); opacity: 0; }
+                        50% { transform: scale(1.05); opacity: 1; }
+                        70% { transform: scale(0.95); }
+                        100% { transform: scale(1); }
+                    }
+                    .animate-bounce-scale {
+                        animation: bounce-scale 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    }
+                    @keyframes pop-up {
+                        from { transform: scale(0.95); opacity: 0; }
+                        to { transform: scale(1); opacity: 1; }
+                    }
+                    .animate-pop-up {
+                        animation: pop-up 0.3s ease-out forwards;
+                    }
+                    @keyframes slide-left {
+                        from { transform: translateX(100%); }
+                        to { transform: translateX(0); }
+                    }
+                    .animate-slide-left {
+                        animation: slide-left 0.3s ease-out forwards;
+                    }
+                `}</style>
+
                 {/* AI Interactive Prompt */}
                  <div className="mb-8 flex flex-col md:flex-row items-center md:items-start gap-4">
                     <Mascot mood={MascotMood.HAPPY} className="w-24 h-24 shrink-0" hasBackpack={settings.offlineMode} />
@@ -371,16 +476,41 @@ const LessonView: React.FC<LessonViewProps> = ({
 
                      {/* Feedback Area */}
                      {feedback && (
-                         <div className={`mt-6 p-4 rounded-xl border-2 flex items-center gap-4 animate-pop-up ${
+                         <div className={`mt-6 p-4 rounded-xl border-2 flex flex-col gap-3 ${
                              feedback.isCorrect 
-                             ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-200' 
-                             : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200'
+                             ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-200 animate-bounce-scale' 
+                             : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200 animate-shake'
                          }`}>
-                             {feedback.isCorrect ? <Check size={28} /> : <X size={28} />}
-                             <div className="flex-1">
-                                 <p className="font-bold text-lg">{feedback.isCorrect ? 'Amazing!' : 'Incorrect'}</p>
-                                 <p>{feedback.message}</p>
+                             <div className="flex items-center gap-4">
+                                {feedback.isCorrect ? <Check size={28} /> : <X size={28} />}
+                                <div className="flex-1">
+                                    <p className="font-bold text-lg">{feedback.isCorrect ? 'Amazing!' : 'Incorrect'}</p>
+                                    <p>{feedback.message}</p>
+                                </div>
                              </div>
+                              
+                             {/* Explain Mistake Feature */}
+                             {!feedback.isCorrect && !isTestMode && (
+                                 <div className="pl-11">
+                                     {!explanation ? (
+                                         <button 
+                                            onClick={handleExplainMistake}
+                                            disabled={isExplaining}
+                                            className="text-sm font-bold underline flex items-center gap-1 hover:text-red-600 dark:hover:text-red-300"
+                                         >
+                                             {isExplaining ? <Loader2 className="animate-spin" size={14} /> : <Lightbulb size={14} />}
+                                             {isExplaining ? "Pyssss is thinking..." : "Explain why I'm wrong"}
+                                         </button>
+                                     ) : (
+                                         <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg text-sm mt-2 border border-red-200 dark:border-red-800/50 animate-fade-in">
+                                             <div className="font-bold flex items-center gap-2 mb-1">
+                                                 <Mascot mood={MascotMood.THINKING} className="w-6 h-6" /> Pyssss Explanation:
+                                             </div>
+                                             {explanation}
+                                         </div>
+                                     )}
+                                 </div>
+                             )}
                          </div>
                      )}
                  </div>
@@ -395,9 +525,11 @@ const LessonView: React.FC<LessonViewProps> = ({
               {!isTestMode ? (
                   <button 
                      onClick={handleHint}
-                     className="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors flex items-center gap-2 font-bold"
+                     disabled={isFetchingHint || isValidating}
+                     className="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors flex items-center gap-2 font-bold disabled:opacity-50"
                   >
-                      <HelpCircle size={20} /> <span className="hidden sm:inline">Hint</span>
+                      {isFetchingHint ? <Loader2 className="animate-spin" size={20} /> : <HelpCircle size={20} />}
+                      <span className="hidden sm:inline">{isFetchingHint ? 'Thinking...' : 'Hint'}</span>
                   </button>
               ) : (
                   <div className="text-gray-400 text-xs font-bold uppercase tracking-wider">Test Mode</div>
@@ -413,10 +545,10 @@ const LessonView: React.FC<LessonViewProps> = ({
               ) : (
                   <button 
                      onClick={handleCheck}
-                     disabled={!userCode || isChecking || !showAiPrompt}
+                     disabled={!userCode || isValidating || isFetchingHint || !showAiPrompt}
                      className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95 min-w-[120px] justify-center"
                   >
-                      {isChecking ? (
+                      {isValidating ? (
                           <>
                             <RefreshCw className="animate-spin" size={20} />
                             <span>Checking...</span>

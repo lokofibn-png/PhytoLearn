@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { UserProgress, UnitConfig, getLevel } from '../types';
-import { Trophy, Flame, Crosshair, Zap, Award, Lock, CheckCircle2, TrendingUp, BookOpen } from 'lucide-react';
+import { Trophy, Flame, Crosshair, Zap, Award, Lock, CheckCircle2, TrendingUp, BookOpen, Box, Key, Star, Crown, GraduationCap } from 'lucide-react';
 
 interface StatsViewProps {
   progress: UserProgress;
@@ -10,10 +11,16 @@ interface StatsViewProps {
 const ACHIEVEMENT_LIST = [
     { id: 'first_step', title: 'Hello World', desc: 'Complete your first lesson', icon: <CheckCircle2 />, condition: (p: UserProgress) => p.completedLessons.length >= 1 },
     { id: 'streak_3', title: 'Heating Up', desc: 'Reach a 3 day streak', icon: <Flame />, condition: (p: UserProgress) => p.streak >= 3 },
+    { id: 'treasure', title: 'Treasure Hunter', desc: 'Open a Unit Chest', icon: <Box />, condition: (p: UserProgress) => (p.openedChests?.length || 0) > 0 },
     { id: 'level_5', title: 'High Five', desc: 'Reach Level 5', icon: <TrendingUp />, condition: (p: UserProgress) => getLevel(p.xp) >= 5 },
     { id: 'scholar', title: 'Scholar', desc: 'Complete 10 lessons', icon: <BookOpen />, condition: (p: UserProgress) => p.completedLessons.length >= 10 },
+    { id: 'secret', title: 'Secret Agent', desc: 'Unlock the Hidden Unit', icon: <Key />, condition: (p: UserProgress) => !!p.hiddenUnitUnlocked },
     { id: 'streak_7', title: 'Unstoppable', desc: 'Reach a 7 day streak', icon: <Zap />, condition: (p: UserProgress) => p.streak >= 7 },
+    { id: 'veteran', title: 'Veteran', desc: 'Complete 25 lessons', icon: <Star />, condition: (p: UserProgress) => p.completedLessons.length >= 25 },
+    { id: 'streak_14', title: 'Marathon', desc: 'Reach a 14 day streak', icon: <Flame className="text-red-600" />, condition: (p: UserProgress) => p.streak >= 14 },
+    { id: 'mentor', title: 'The Mentor', desc: 'Unlock Mentor Mode', icon: <GraduationCap />, condition: (p: UserProgress) => !!p.mentorModeUnlocked },
     { id: 'master', title: 'Python Master', desc: 'Reach Level 20', icon: <Trophy />, condition: (p: UserProgress) => getLevel(p.xp) >= 20 },
+    { id: 'legend', title: 'Living Legend', desc: 'Reach Level 50', icon: <Crown />, condition: (p: UserProgress) => getLevel(p.xp) >= 50 },
 ];
 
 const StatCard = ({ icon, label, value, color, subValue }: any) => (

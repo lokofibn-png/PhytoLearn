@@ -58,7 +58,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, showTimer = true
               <br/>
               <span className="font-bold text-blue-500 select-all">PythonLearnerTeam@gmail.com</span>
               <br/>
-              <span className="text-xs text-green-600 dark:text-green-400 font-bold">(I respond all time no matter what)</span>
+              <span className="text-xs text-green-600 dark:text-green-400 font-bold">(We respond within 24h)</span>
             </p>
 
             <p className="italic opacity-80">
@@ -70,7 +70,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, showTimer = true
             <div className="flex gap-2 items-start text-xs opacity-75 text-left">
               <Code size={16} className="mt-0.5 flex-shrink-0" />
               <span>
-                Written by Google AI Studio (I know, I know), but the full design was from me (except lingo). I've been putting really hard effort, scripts, and work setting up Firebase in Terminal.
+                Designed & Built with ❤️ for the Python Community.
                 <br/>
                 <span className="font-bold text-blue-500">Updating constantly!</span>
               </span>
@@ -78,7 +78,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, showTimer = true
             
             <p className="font-bold text-green-500 flex items-center justify-center gap-2">
               <Heart size={16} fill="currentColor" /> 
-              It is made for everybody. Happy learning!
+              Happy learning!
             </p>
           </div>
 

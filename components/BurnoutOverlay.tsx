@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MascotMood } from '../types';
 import Mascot from './Mascot';
@@ -72,7 +73,7 @@ const BurnoutOverlay: React.FC<BurnoutOverlayProps> = ({ endTime, failedLessonId
 
     return (
         <div className="fixed inset-0 z-[100] bg-gray-900/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white animate-fade-in">
-            <div claspsName="max-w-md w-full flex flex-col items-center text-center space-y-8">
+            <div className="max-w-md w-full flex flex-col items-center text-center space-y-8">
                 
                 {/* Header */}
                 <div className="space-y-2">

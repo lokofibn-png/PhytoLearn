@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Mascot from './Mascot';
 import { MascotMood } from '../types';
@@ -138,21 +139,19 @@ const PyssssChat: React.FC<PyssssChatProps> = ({ onFiveClicks }) => {
   };
 
   return (
-    <div className="fixed z-40 right-2 top-[65%] -translate-y-1/2 md:left-40 md:right-auto md:top-[65%] md:transform md:-translate-x-1/2 group">
+    <div className="fixed z-50 right-4 bottom-4 md:right-8 md:bottom-8 group">
       
-      {/* Chat Bubble */}
+      {/* Chat Bubble - Positioned relative to the corner anchor */}
       <div 
         className={`
-            absolute bottom-full mb-4 
-            right-0 md:right-auto md:left-14
+            absolute bottom-full mb-4 right-0
             w-max max-w-[200px] md:max-w-[300px] min-w-[150px]
             bg-[#1a1a2ee6] backdrop-blur-sm
             border border-[#2ecc714d] 
             text-white text-lg font-medium
-            px-6 py-5 rounded-2xl shadow-2xl
+            px-6 py-5 rounded-2xl rounded-br-none shadow-2xl
             transition-all duration-300 ease-in-out
-            origin-bottom-right md:origin-bottom-left
-            bubble-tail
+            origin-bottom-right
             pointer-events-none
             ${phase === 'IDLE' ? 'opacity-0 scale-90 translate-y-4 visibility-hidden' : 'opacity-100 scale-100 translate-y-0'}
         `}
@@ -177,7 +176,7 @@ const PyssssChat: React.FC<PyssssChatProps> = ({ onFiveClicks }) => {
         role="button"
         aria-label="Get a tip from Pyssss"
         onClick={handleClick}
-        className="relative w-20 h-20 cursor-pointer transition-transform duration-300 group-hover:scale-110 active:scale-95"
+        className="relative w-24 h-24 md:w-32 md:h-32 cursor-pointer transition-transform duration-300 group-hover:scale-110 active:scale-95"
       >
          {/* Glow effect behind mascot */}
          <div className="absolute inset-0 bg-green-400 rounded-full blur-2xl opacity-30 group-hover:opacity-60 transition-opacity"></div>

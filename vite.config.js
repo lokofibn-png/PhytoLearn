@@ -1,16 +1,21 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const DEFAULT_API_KEY = "AIzaSyAwWDF0GdZordj_7bJubswdk3SJ9kLu0ok";
+export default defineConfig(({ mode }) => {
+  // Load env file based on `mode` in the current working directory.
+  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
+  const env = loadEnv(mode, process.cwd(), '');
 
-export default defineConfig({
-  base: "./",
-  plugins: [react()],
-  define: {
-    'process.env': {
-      NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
-      API_KEY: JSON.stringify(process.env.API_KEY || DEFAULT_API_KEY),
-      FIREBASE_API_KEY: JSON.stringify(process.env.FIREBASE_API_KEY || DEFAULT_API_KEY)
+  return {
+    base: "./",
+    plugins: [react()],
+    define: {
+      // Safely expose process.env to the client for libraries that rely on it
+      'process.env': {
+        NODE_ENV: JSON.stringify(mode),
+        // Prioritize VITE_API_KEY, fallback to API_KEY, then hardcoded (not recommended for prod)
+        API_KEY: JSON.stringify(env.VITE_API_KEY || env.API_KEY || "AIzaSyANCF9BSzc-fqWogeT-48Q-TdJw9F09PVc"),
+      }
     }
-  }
+  };
 });

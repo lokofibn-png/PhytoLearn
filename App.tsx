@@ -9,6 +9,7 @@ import { authService } from './services/authService';
 import { dbService } from './services/dbService';
 import { soundService } from './services/soundService';
 import { networkService } from './services/networkService'; // New import
+import { presenceService } from './services/presenceService'; // Added import
 import { SecretType, decodeSecretId } from './utils/secrets';
 import { getLessons, getUnits } from './services/curriculum';
 
@@ -441,9 +442,16 @@ export default function App() {
         onUnlockHiddenUnit={handleUnlockHiddenUnit}
         onCheat={handleCheat}
         onOpenChest={handleOpenChest}
-        onStartPairProgramming={(id) => {
+        onStartPairProgramming={async (id) => {
             if (!isOnline) { alert("Requires Internet"); return; }
-            setCurrentSessionId(id);
+            let finalId = id;
+            if (id === 'new') {
+               finalId = await presenceService.createSession({ 
+                   id: user?.id || 'anon', 
+                   name: user?.displayName || 'User' 
+               });
+            }
+            setCurrentSessionId(finalId);
             setView('pair');
         }}
         onUpdateProfile={handleUpdateProfile}

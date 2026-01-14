@@ -1,5 +1,6 @@
+
 {
-  "appId": "LearnPython.app",
+  "appId": "com.pytholingo.app",
   "appName": "Pythonlingo",
   "webDir": "dist",
   "server": {
@@ -13,7 +14,7 @@
     },
     "GoogleAuth": {
       "scopes": ["profile", "email"],
-      "serverClientId": "755959686276-iucus752hne9memsmhsaq1o5njfg847b.apps.googleusercontent.com",
+      "serverClientId": "101770471184-sea500647ch1eb1ij4t5hvg6tvmmrb9p.apps.googleusercontent.com",
       "forceCodeForRefreshToken": true
     }
   }
